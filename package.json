@@ -52,7 +52,7 @@
     "url": "https://github.com/pingcheng/bootstrap4-datetimepicker"
   },
   "scripts": {
-    "requirements-check": "check-node-version --node '>= 8'",
+    "requirements-check": "check-node-version --node '>= 6'",
     "postinstall": "npm run requirements-check"
   },
   "version": "4.17.50"
