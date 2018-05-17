@@ -19,7 +19,6 @@
   },
   "description": "A date/time picker component designed to work with Bootstrap 3 and Momentjs. For usage, installation and demos see Project Site on GitHub",
   "devDependencies": {
-    "check-node-version": "^1.0.0",
     "grunt": "latest",
     "grunt-contrib-connect": "^1.0.1",
     "grunt-contrib-jasmine": "^1.0.3",
@@ -50,10 +49,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/pingcheng/bootstrap4-datetimepicker"
-  },
-  "scripts": {
-    "requirements-check": "check-node-version --node '>= 6'",
-    "postinstall": "npm run requirements-check"
   },
   "version": "4.17.50"
 }
