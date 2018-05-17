@@ -191,17 +191,21 @@
                 return (isEnabled('y') || isEnabled('M') || isEnabled('d'));
             },
 
-            getIconTemplate = function(key) {
-                var config = options.icons[key];
-                if (typeof(config) === 'string') {
-                    config = {cls: config};
+            getOriginalIconElement = function (cls) {
+                return $('<i>').addClass(cls);
+            },
+
+            getIconTemplate = function (clsOrObject) {
+                var template = '';
+                if (typeof(clsOrObject) === 'string') {
+                    template = getOriginalIconElement(clsOrObject);
+                } else {
+                    template = options.iconsTemplate;
+                    $.each(clsOrObject, function (key, value) {
+                        // TODO: Instead of replace something like "jQuery Templating Plugin" should be used.
+                        template = template.replace('${' + key + '}', value);
+                    });
                 }
-
-                var template = options.icons_template;
-                $.each(config, function(key, value) {
-                    template = template.replace('${'+key+'}', value);
-                });
-
                 return template;
             },
 
@@ -1898,6 +1902,22 @@
             return picker;
         };
 
+        picker.iconsTemplate = function (iconsTemplate) {
+            if (arguments.length === 0) {
+                return $.extend({}, options.iconsTemplate);
+            }
+
+            if (typeof(iconsTemplate) !== 'string') {
+                throw new TypeError('iconsTemplate() expects parameter to be a String');
+            }
+            $.extend(options.iconsTemplate, iconsTemplate);
+            if (widget) {
+                hide();
+                show();
+            }
+            return picker;
+        };
+
         picker.tooltips = function (tooltips) {
             if (arguments.length === 0) {
                 return $.extend({}, options.tooltips);
@@ -2484,7 +2504,7 @@
             clear: 'fa fa-trash-o',
             close: 'fa fa-times'
         },
-        icons_template: '<i class="${cls}"></i>',
+        iconsTemplate: '<i class="${cls}"></i>',
         tooltips: {
             today: 'Go to today',
             clear: 'Clear selection',
