@@ -180,7 +180,7 @@ module.exports = function (grunt) {
         // code style
         'jshint', 'jscs',
         // build
-        'uglify', 'less',
+        'uglify', 'less', 'concat',
         // tests
         'env:paris', 'connect', 'jasmine'
     ]);
