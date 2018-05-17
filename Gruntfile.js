@@ -2,6 +2,21 @@ module.exports = function (grunt) {
     'use strict';
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
+        concat: {
+            options: {
+                // define a string to put between each file in the concatenated output
+                separator: ';'
+            },
+            dist: {
+                // the files to concatenate
+                src: [
+                    'src/vendor/js/jquery-tmpl/jquery.tmpl.min.js',
+                    'build/js/bootstrap-datetimepicker.min.js'
+                ],
+                // the location of the resulting JS file
+                dest: 'build/js/bootstrap-datetimepicker.min.js'
+            }
+        },
         uglify: {
             target: {
                 files: {
@@ -153,12 +168,13 @@ module.exports = function (grunt) {
     grunt.loadTasks('tasks');
 
     grunt.loadNpmTasks('grunt-env');
+    grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-connect');
     grunt.loadNpmTasks('grunt-contrib-jasmine');
     grunt.loadNpmTasks('grunt-nuget');
 
     require('load-grunt-tasks')(grunt);
-    grunt.registerTask('default', ['jshint', 'jscs', 'less', 'env:paris', 'connect', 'jasmine']);
+    grunt.registerTask('default', ['jshint', 'jscs', 'less', 'concat', 'env:paris', 'connect', 'jasmine']);
     grunt.registerTask('build:travis', [
         // code style
         'jshint', 'jscs',
@@ -169,9 +185,9 @@ module.exports = function (grunt) {
     ]);
 
     // Task to be run when building
-    grunt.registerTask('build', ['jshint', 'jscs', 'uglify', 'less']);
+    grunt.registerTask('build', ['jshint', 'jscs', 'uglify', 'less', 'concat']);
 
-    grunt.registerTask('test', ['jshint', 'jscs', 'uglify', 'less', 'env:paris', 'connect', 'jasmine']);
+    grunt.registerTask('test', ['jshint', 'jscs', 'uglify', 'less', 'concat', 'env:paris', 'connect', 'jasmine']);
 
     grunt.registerTask('docs', 'Generate docs', function () {
         grunt.util.spawn({

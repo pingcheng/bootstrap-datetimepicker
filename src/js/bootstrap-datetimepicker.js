@@ -200,11 +200,7 @@
                 if (typeof(clsOrObject) === 'string') {
                     template = getOriginalIconElement(clsOrObject);
                 } else {
-                    template = options.iconsTemplate;
-                    $.each(clsOrObject, function (key, value) {
-                        // TODO: Instead of replace something like "jQuery Templating Plugin" should be used.
-                        template = template.replace('${' + key + '}', value);
-                    });
+                    template = $.tmpl('bootstrapDatetimepickerIconsTemplate', clsOrObject);
                 }
                 return template;
             },
@@ -1915,6 +1911,7 @@
                 hide();
                 show();
             }
+            $.template('bootstrapDatetimepickerIconsTemplate', options.iconsTemplate);
             return picker;
         };
 
