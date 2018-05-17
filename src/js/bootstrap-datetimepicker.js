@@ -191,15 +191,29 @@
                 return (isEnabled('y') || isEnabled('M') || isEnabled('d'));
             },
 
+            getOriginalIconElement = function (cls) {
+                return $('<i>').addClass(cls);
+            },
+
+            getIconTemplate = function (clsOrObject) {
+                var template = '';
+                if (typeof(clsOrObject) === 'string') {
+                    template = getOriginalIconElement(clsOrObject);
+                } else {
+                    template = $.tmpl('bootstrapDatetimepickerIconsTemplate', clsOrObject);
+                }
+                return template;
+            },
+
             getDatePickerTemplate = function () {
                 var headTemplate = $('<thead>')
                         .append($('<tr>')
                             .append($('<th>').addClass('prev').attr('data-action', 'previous')
-                                .append($('<i>').addClass(options.icons.previous))
+                                .append(getIconTemplate(options.icons.previous))
                                 )
                             .append($('<th>').addClass('picker-switch').attr('data-action', 'pickerSwitch').attr('colspan', (options.calendarWeeks ? '6' : '5')))
                             .append($('<th>').addClass('next').attr('data-action', 'next')
-                                .append($('<i>').addClass(options.icons.next))
+                                .append(getIconTemplate(options.icons.next))
                                 )
                             ),
                     contTemplate = $('<tbody>')
@@ -238,11 +252,11 @@
 
                 if (isEnabled('h')) {
                     topRow.append($('<td>')
-                        .append($('<a>').attr({ href: '#', tabindex: '-1', 'title': options.tooltips.incrementHour }).addClass('btn').attr('data-action', 'incrementHours').append($('<i>').addClass(options.icons.up))));
+                        .append($('<a>').attr({ href: '#', tabindex: '-1', 'title': options.tooltips.incrementHour }).addClass('btn').attr('data-action', 'incrementHours').append(getIconTemplate(options.icons.up))));
                     middleRow.append($('<td>')
                         .append($('<span>').addClass('timepicker-hour').attr({ 'data-time-component': 'hours', 'title': options.tooltips.pickHour }).attr('data-action', 'showHours')));
                     bottomRow.append($('<td>')
-                        .append($('<a>').attr({ href: '#', tabindex: '-1', 'title': options.tooltips.decrementHour }).addClass('btn').attr('data-action', 'decrementHours').append($('<i>').addClass(options.icons.down))));
+                        .append($('<a>').attr({ href: '#', tabindex: '-1', 'title': options.tooltips.decrementHour }).addClass('btn').attr('data-action', 'decrementHours').append(getIconTemplate(options.icons.down))));
                 }
                 if (isEnabled('m')) {
                     if (isEnabled('h')) {
@@ -252,12 +266,12 @@
                     }
                     topRow.append($('<td>')
                         .append($('<a>').attr({ href: '#', tabindex: '-1', 'title': options.tooltips.incrementMinute }).addClass('btn').attr('data-action', 'incrementMinutes')
-                            .append($('<i>').addClass(options.icons.up))));
+                            .append(getIconTemplate(options.icons.up))));
                     middleRow.append($('<td>')
                         .append($('<span>').addClass('timepicker-minute').attr({ 'data-time-component': 'minutes', 'title': options.tooltips.pickMinute }).attr('data-action', 'showMinutes')));
                     bottomRow.append($('<td>')
                         .append($('<a>').attr({ href: '#', tabindex: '-1', 'title': options.tooltips.decrementMinute }).addClass('btn').attr('data-action', 'decrementMinutes')
-                            .append($('<i>').addClass(options.icons.down))));
+                            .append(getIconTemplate(options.icons.down))));
                 }
                 if (isEnabled('s')) {
                     if (isEnabled('m')) {
@@ -267,12 +281,12 @@
                     }
                     topRow.append($('<td>')
                         .append($('<a>').attr({ href: '#', tabindex: '-1', 'title': options.tooltips.incrementSecond }).addClass('btn').attr('data-action', 'incrementSeconds')
-                            .append($('<i>').addClass(options.icons.up))));
+                            .append(getIconTemplate(options.icons.up))));
                     middleRow.append($('<td>')
                         .append($('<span>').addClass('timepicker-second').attr({ 'data-time-component': 'seconds', 'title': options.tooltips.pickSecond }).attr('data-action', 'showSeconds')));
                     bottomRow.append($('<td>')
                         .append($('<a>').attr({ href: '#', tabindex: '-1', 'title': options.tooltips.decrementSecond }).addClass('btn').attr('data-action', 'decrementSeconds')
-                            .append($('<i>').addClass(options.icons.down))));
+                            .append(getIconTemplate(options.icons.down))));
                 }
 
                 if (!use24Hours) {
@@ -312,16 +326,16 @@
             getToolbar = function () {
                 var row = [];
                 if (options.showTodayButton) {
-                    row.push($('<td>').append($('<a>').attr({ 'data-action': 'today', 'title': options.tooltips.today }).append($('<i>').addClass(options.icons.today))));
+                    row.push($('<td>').append($('<a>').attr({ 'data-action': 'today', 'title': options.tooltips.today }).append(getIconTemplate(options.icons.today))));
                 }
                 if (!options.sideBySide && hasDate() && hasTime()) {
-                    row.push($('<td>').append($('<a>').attr({ 'data-action': 'togglePicker', 'title': options.tooltips.selectTime }).append($('<i>').addClass(options.icons.time))));
+                    row.push($('<td>').append($('<a>').attr({ 'data-action': 'togglePicker', 'title': options.tooltips.selectTime }).append(getIconTemplate(options.icons.time))));
                 }
                 if (options.showClear) {
-                    row.push($('<td>').append($('<a>').attr({ 'data-action': 'clear', 'title': options.tooltips.clear }).append($('<i>').addClass(options.icons.clear))));
+                    row.push($('<td>').append($('<a>').attr({ 'data-action': 'clear', 'title': options.tooltips.clear }).append(getIconTemplate(options.icons.clear))));
                 }
                 if (options.showClose) {
-                    row.push($('<td>').append($('<a>').attr({ 'data-action': 'close', 'title': options.tooltips.close }).append($('<i>').addClass(options.icons.close))));
+                    row.push($('<td>').append($('<a>').attr({ 'data-action': 'close', 'title': options.tooltips.close }).append(getIconTemplate(options.icons.close))));
                 }
                 return $('<table>').addClass('table-condensed').append($('<tbody>').append($('<tr>').append(row)));
             },
@@ -1884,6 +1898,23 @@
             return picker;
         };
 
+        picker.iconsTemplate = function (iconsTemplate) {
+            if (arguments.length === 0) {
+                return $.extend({}, options.iconsTemplate);
+            }
+
+            if (typeof(iconsTemplate) !== 'string') {
+                throw new TypeError('iconsTemplate() expects parameter to be a String');
+            }
+            $.extend(options.iconsTemplate, iconsTemplate);
+            if (widget) {
+                hide();
+                show();
+            }
+            $.template('bootstrapDatetimepickerIconsTemplate', options.iconsTemplate);
+            return picker;
+        };
+
         picker.tooltips = function (tooltips) {
             if (arguments.length === 0) {
                 return $.extend({}, options.tooltips);
@@ -2470,6 +2501,7 @@
             clear: 'fa fa-trash-o',
             close: 'fa fa-times'
         },
+        iconsTemplate: '<i class="${cls}"></i>',
         tooltips: {
             today: 'Go to today',
             clear: 'Clear selection',
