@@ -297,15 +297,73 @@ Change the default icons for the pickers functions.
 
 #### icons()
 
-Returns an `Ojbect` of `options.icons` 
+Returns an `Object` of `options.icons` 
 
 #### icons(icons)
 
-Takes an `Ojbect` of `strings`.
+Takes an `Object` of `strings`.
 
 ##### Throws
 
-* `TypeError` - if icons parameter is not an `Ojbect`
+* `TypeError` - if icons parameter is not an `Object`
+
+----------------------
+
+### iconsTemplate
+
+    Default: '<i class="${cls}"></i>'
+    Accepts: string
+
+Change the default icons template for the pickers functions.
+
+#### iconsTemplate()
+
+Returns a `String` of `options.iconsTemplate` 
+
+#### iconsTemplate(iconsTemplate)
+
+Takes a `Strings`.
+
+#### Code
+
+The example uses the default behaviour to create the clear icon, because the option `icons.clear` is a string. 
+For the close icon the iconsTemplate option will be used, because the option `icons.close` is an object. Each 
+key of the object will be replaced in the iconsTemplate (`${key}`) with its value. 
+Here an svg icon will be created to show the close icon.
+
+```
+<div class="container">
+    <div class="row">
+        <div class='col-sm-6'>
+            <div class="form-group">
+                <div class='input-group date' id='datetimepicker1'>
+                    <input type='text' class="form-control" />
+                    <span class="input-group-append">
+                        <span class="input-group-text">
+                            <span class="fa fa-calendar"></span>
+                        </span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript">
+            $(function () {
+                $('#datetimepicker1').datetimepicker({
+                    icons: {
+                        clear: 'fa fa-trash',
+                        close: {cls: 'my-close-class', href: 'my-svg-close-href'}
+                    },
+                    iconsTemplate: '<i class="${cls}"><svg role="img" aria-labeledby="title"><use xlink:href="#${href}"></use></svg></i>'
+                });
+            });
+        </script>
+    </div>
+</div>
+```
+
+##### Throws
+
+* `TypeError` - if iconsTemplate parameter is not a `String`
 
 ----------------------
 

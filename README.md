@@ -12,3 +12,4 @@ Click [here](http://eonasdan.github.io/bootstrap-datetimepicker/) for the offica
 * JS DOM class name control
 * CSS stylessheet
 * Replaced glyphicon with fontawesome icons
+* iconTemplate option added
