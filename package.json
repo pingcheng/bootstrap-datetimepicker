@@ -33,7 +33,7 @@
     "load-grunt-tasks": "latest"
   },
   "engines": {
-    "node": ">=8"
+    "node": ">=6"
   },
   "homepage": "https://github.com/pingcheng/bootstrap4-datetimepicker",
   "keywords": [
