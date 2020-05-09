@@ -315,7 +315,7 @@
                     row.push($('<td>').append($('<a>').attr({ 'data-action': 'today', 'title': options.tooltips.today }).append($('<i>').addClass(options.icons.today))));
                 }
                 if (!options.sideBySide && hasDate() && hasTime()) {
-                    row.push($('<td>').append($('<a>').attr({ 'data-action': 'togglePicker', 'title': options.tooltips.selectTime }).append($('<i>').addClass(options.icons.time))));
+                    row.push($('<td>').append($('<a>').attr({ 'data-action': 'togglePicker', 'title': options.tooltips.selectTime, 'class': 'time-view' }).append($('<i>').addClass(options.icons.time))));
                 }
                 if (options.showClear) {
                     row.push($('<td>').append($('<a>').attr({ 'data-action': 'clear', 'title': options.tooltips.clear }).append($('<i>').addClass(options.icons.clear))));
@@ -582,7 +582,8 @@
             },
 
             updateMonths = function () {
-                var monthsView = widget.find('.datepicker-months'),
+                var displayDate, 
+                    monthsView = widget.find('.datepicker-months'),
                     monthsViewHeader = monthsView.find('th'),
                     months = monthsView.find('tbody').find('span');
 
@@ -596,7 +597,18 @@
                     monthsViewHeader.eq(0).addClass('disabled');
                 }
 
-                monthsViewHeader.eq(1).text(viewDate.year());
+                if (options.showBE) {
+                    displayDate = viewDate.clone().add(543, 'year');
+                } else {
+                    displayDate = viewDate.clone();
+                }
+
+                monthsViewHeader.eq(1).text(displayDate.year());
+                if (options.showBE) {
+                    monthsViewHeader.eq(1).text((options.labels.buddhistEra ? (options.labels.buddhistEra + ' ') : '') + displayDate.year());
+                } else {
+                    monthsViewHeader.eq(1).text((options.labels.currentEra ? (options.labels.currentEra + ' ') : '') + displayDate.year());
+                }
 
                 if (!isValid(viewDate.clone().add(1, 'y'), 'y')) {
                     monthsViewHeader.eq(2).addClass('disabled');
@@ -617,29 +629,73 @@
             updateYears = function () {
                 var yearsView = widget.find('.datepicker-years'),
                     yearsViewHeader = yearsView.find('th'),
-                    startYear = viewDate.clone().subtract(5, 'y'),
-                    endYear = viewDate.clone().add(6, 'y'),
+                    startYear,
+                    endYear,
+                    displayDate,
+                    realStartYear,
+                    realEndYear,
                     html = '';
+                if (options.showBE) {
+                    displayDate = viewDate.clone().add(543, 'year');
+                } else {
+                    displayDate = viewDate.clone();
+                }
 
+                startYear = moment({ y: displayDate.year() - (displayDate.year() % 10) });
+                endYear = startYear.clone().add(9, 'y');
                 yearsViewHeader.eq(0).find('span').attr('title', options.tooltips.prevDecade);
                 yearsViewHeader.eq(1).attr('title', options.tooltips.selectDecade);
                 yearsViewHeader.eq(2).find('span').attr('title', options.tooltips.nextDecade);
-
                 yearsView.find('.disabled').removeClass('disabled');
 
-                if (options.minDate && options.minDate.isAfter(startYear, 'y')) {
-                    yearsViewHeader.eq(0).addClass('disabled');
+                if (options.showBE) {
+
+                    realStartYear = startYear.clone().subtract(543, 'year');
+                    if (options.minDate && options.minDate.isAfter(realStartYear, 'y')) {
+                        yearsViewHeader.eq(0).addClass('disabled');
+                    }
+
+                    yearsViewHeader.eq(1).text((options.labels.buddhistEra ? (options.labels.buddhistEra + ' ') : '') + startYear.year() + '-' + endYear.year());
+                    
+                    realEndYear = startYear.clone().subtract(543, 'year');
+                    if (options.maxDate && options.maxDate.isBefore(realEndYear, 'y')) {
+                        yearsViewHeader.eq(2).addClass('disabled');
+                    }
+
+                } else {
+
+                    if (options.minDate && options.minDate.isAfter(startYear, 'y')) {
+                        yearsViewHeader.eq(0).addClass('disabled');
+                    }
+
+                    yearsViewHeader.eq(1).text((options.labels.currentEra ? (options.labels.currentEra + ' ') : '') + startYear.year() + '-' + endYear.year());
+                    
+                    if (options.maxDate && options.maxDate.isBefore(endYear, 'y')) {
+                        yearsViewHeader.eq(2).addClass('disabled');
+                    }
+
                 }
 
-                yearsViewHeader.eq(1).text(startYear.year() + '-' + endYear.year());
+                if (options.showBE) {
 
-                if (options.maxDate && options.maxDate.isBefore(endYear, 'y')) {
-                    yearsViewHeader.eq(2).addClass('disabled');
-                }
+                    while (!startYear.isAfter(endYear, 'y')) {
+                        realStartYear = startYear.clone().subtract(543, 'year');
+                        html += '<span data-action="selectYear" class="year' +
+                            (realStartYear.isSame(date, 'y') && !unset ? ' active' : '') +
+                            (!isValid(realStartYear, 'y') ? ' disabled' : '') + '">' +
+                            startYear.year() + '</span>';
+                        startYear.add(1, 'y');
+                    }
 
-                while (!startYear.isAfter(endYear, 'y')) {
-                    html += '<span data-action="selectYear" class="year' + (startYear.isSame(date, 'y') && !unset ? ' active' : '') + (!isValid(startYear, 'y') ? ' disabled' : '') + '">' + startYear.year() + '</span>';
-                    startYear.add(1, 'y');
+                } else {
+
+                    while (!startYear.isAfter(endYear, 'y')) {
+                        html += '<span data-action="selectYear" class="year' +
+                            (startYear.isSame(date, 'y') && !unset ? ' active' : '') +
+                            (!isValid(startYear, 'y') ? ' disabled' : '') + '">' +
+                            startYear.year() + '</span>';
+                        startYear.add(1, 'y');
+                    }
                 }
 
                 yearsView.find('td').html(html);
@@ -648,46 +704,124 @@
             updateDecades = function () {
                 var decadesView = widget.find('.datepicker-decades'),
                     decadesViewHeader = decadesView.find('th'),
-                    startDecade = moment({ y: viewDate.year() - (viewDate.year() % 100) - 1 }),
-                    endDecade = startDecade.clone().add(100, 'y'),
-                    startedAt = startDecade.clone(),
+                    startDecade,
+                    endDecade,
+                    startedAt,
+                    endedAt,
                     minDateDecade = false,
                     maxDateDecade = false,
                     endDecadeYear,
+                    displayDate,
+                    realStartDecade,
+                    realEndDecade,
+                    realEndDecadeYear,
                     html = '';
 
+                if (options.showBE) {
+
+                    displayDate = viewDate.clone().add(543, 'year');
+                    endedAt = moment({ y: (moment().add(543, 'y').year() - (moment().add(543, 'y').year() % 10)) + 9 });
+
+                } else {
+
+                    displayDate = viewDate.clone();
+                    endedAt = moment({ y: (moment().year() - (moment().year() % 10)) + 9 });
+
+                }
+
+                // Start and End in the Gregorian calendar by General Usage
+                startDecade = moment({ y: displayDate.year() - (displayDate.year() % 100) });
+                endDecade = startDecade.clone().add(99, 'y');
+                startedAt = startDecade.clone();
                 decadesViewHeader.eq(0).find('span').attr('title', options.tooltips.prevCentury);
                 decadesViewHeader.eq(2).find('span').attr('title', options.tooltips.nextCentury);
-
                 decadesView.find('.disabled').removeClass('disabled');
 
-                if (startDecade.isSame(moment({ y: 1900 })) || (options.minDate && options.minDate.isAfter(startDecade, 'y'))) {
-                    decadesViewHeader.eq(0).addClass('disabled');
+                if (options.showBE) {
+                    // B.E. 2300
+                    realStartDecade = startDecade.clone().subtract(543, 'year');
+                    if (realStartDecade.isSame(moment({ y: 1757 })) || (options.minDate && options.minDate.isAfter(realStartDecade, 'y'))) {
+                        decadesViewHeader.eq(0).addClass('disabled');
+                    }
+
+                } else {
+
+                    if (startDecade.isSame(moment({ y: 1800 })) || (options.minDate && options.minDate.isAfter(startDecade, 'y'))) {
+                        decadesViewHeader.eq(0).addClass('disabled');
+                    }
+
                 }
 
-                decadesViewHeader.eq(1).text(startDecade.year() + '-' + endDecade.year());
-
-                if (startDecade.isSame(moment({ y: 2000 })) || (options.maxDate && options.maxDate.isBefore(endDecade, 'y'))) {
-                    decadesViewHeader.eq(2).addClass('disabled');
+                if (options.showBE) {
+                    decadesViewHeader.eq(1).text((options.labels.buddhistEra ? (options.labels.buddhistEra + ' ') : '') + startDecade.year() + '-' + endDecade.year());
+                } else {
+                    decadesViewHeader.eq(1).text((options.labels.currentEra ? (options.labels.currentEra + ' ') : '') + startDecade.year() + '-' + endDecade.year());
                 }
 
-                while (!startDecade.isAfter(endDecade, 'y')) {
-                    endDecadeYear = startDecade.year() + 12;
-                    minDateDecade = options.minDate && options.minDate.isAfter(startDecade, 'y') && options.minDate.year() <= endDecadeYear;
-                    maxDateDecade = options.maxDate && options.maxDate.isAfter(startDecade, 'y') && options.maxDate.year() <= endDecadeYear;
-                    html += '<span data-action="selectDecade" class="decade' + (date.isAfter(startDecade) && date.year() <= endDecadeYear ? ' active' : '') +
-                        (!isValid(startDecade, 'y') && !minDateDecade && !maxDateDecade ? ' disabled' : '') + '" data-selection="' + (startDecade.year() + 6) + '">' + (startDecade.year() + 1) + ' - ' + (startDecade.year() + 12) + '</span>';
-                    startDecade.add(12, 'y');
+                if (options.showBE) {
+                    // B.E. 2500
+                    realStartDecade = startDecade.clone().subtract(543, 'year');
+                    realEndDecade = realStartDecade.clone().add(99, 'y');
+                    if (realStartDecade.isSame(moment({ y: 1957 })) || (options.maxDate && options.maxDate.isBefore(realEndDecade, 'y'))) {
+                        decadesViewHeader.eq(2).addClass('disabled');
+                    }
+
+                } else {
+
+                    if (startDecade.isSame(moment({ y: 2000 })) || (options.maxDate && options.maxDate.isBefore(endDecade, 'y'))) {
+                        decadesViewHeader.eq(2).addClass('disabled');
+                    }
+
                 }
-                html += '<span></span><span></span><span></span>'; //push the dangling block over, at least this way it's even
+
+                if (options.showBE) {
+
+                    while (!startDecade.isAfter(endDecade, 'y')) {
+                        realStartDecade = startDecade.clone().subtract(543, 'year');
+                        realEndDecadeYear = realStartDecade.year() + 9;
+                        realEndedAt = endedAt.clone().subtract(543, 'year');
+                        minDateDecade = options.minDate && options.minDate.isAfter(realStartDecade, 'y') && options.minDate.year() <= realEndDecadeYear;
+                        maxDateDecade = options.maxDate && options.maxDate.isAfter(realStartDecade, 'y') && options.maxDate.year() <= realEndDecadeYear;
+                        html += '<span data-action="selectDecade" class="decade' +
+                            (date.isAfter(realStartDecade) && date.year() <= realEndDecadeYear ? ' active' : '') +
+                            (!isValid(realStartDecade, 'y') && !minDateDecade && !maxDateDecade ? ' disabled' : '') + '" ' +
+                            'data-selection="' + (realStartDecade.year() + 5) + '">' +
+                            startDecade.year() + ' - ' + (startDecade.year() + 9) +
+                            '</span>';
+
+                        startDecade.add(10, 'y');
+                    }
+
+                } else {
+                    while (!startDecade.isAfter(endDecade, 'y')) {
+                        endDecadeYear = startDecade.year() + 9;
+                        minDateDecade = options.minDate && options.minDate.isAfter(startDecade, 'y') && options.minDate.year() <= endDecadeYear;
+                        maxDateDecade = options.maxDate && options.maxDate.isAfter(startDecade, 'y') && options.maxDate.year() <= endDecadeYear;
+                        html += '<span data-action="selectDecade" class="decade' +
+                            (date.isAfter(startDecade) && date.year() <= endDecadeYear ? ' active' : '') +
+                            (!isValid(startDecade, 'y') && !minDateDecade && !maxDateDecade ? ' disabled' : '') + '" ' +
+                            'data-selection="' + (startDecade.year() + 5) + '">' +
+                            (startDecade.year()) + ' - ' + (startDecade.year() + 9) +
+                            '</span>';
+
+                        startDecade.add(10, 'y');
+                    }
+                }
 
                 decadesView.find('td').html(html);
-                decadesViewHeader.eq(1).text((startedAt.year() + 1) + '-' + (startDecade.year()));
+
+                if (options.showBE) {
+                    decadesViewHeader.eq(1).text((options.labels.buddhistEra ? (options.labels.buddhistEra + ' ') : '') + startedAt.year() + '-' + endDecade.year());
+                } else {
+                    decadesViewHeader.eq(1).text((options.labels.currentEra ? (options.labels.currentEra + ' ') : '') + startedAt.year() + '-' + endDecade.year());
+                }
+
             },
 
             fillDate = function () {
                 var daysView = widget.find('.datepicker-days'),
                     daysViewHeader = daysView.find('th'),
+                    displayDate,
                     currentDate,
                     html = [],
                     row,
@@ -701,9 +835,15 @@
                 daysViewHeader.eq(0).find('span').attr('title', options.tooltips.prevMonth);
                 daysViewHeader.eq(1).attr('title', options.tooltips.selectMonth);
                 daysViewHeader.eq(2).find('span').attr('title', options.tooltips.nextMonth);
-
                 daysView.find('.disabled').removeClass('disabled');
-                daysViewHeader.eq(1).text(viewDate.format(options.dayViewHeaderFormat));
+
+                if (options.showBE) {
+                    displayDate = viewDate.clone().add(543, 'year');
+                } else {
+                    displayDate = viewDate.clone();
+                }
+
+                daysViewHeader.eq(1).text(displayDate.format(options.dayViewHeaderFormat));
 
                 if (!isValid(viewDate.clone().subtract(1, 'M'), 'M')) {
                     daysViewHeader.eq(0).addClass('disabled');
@@ -830,9 +970,29 @@
                         toggle.addClass('disabled');
                     }
                 }
-                timeComponents.filter('[data-time-component=hours]').text(date.format(use24Hours ? 'HH' : 'hh'));
-                timeComponents.filter('[data-time-component=minutes]').text(date.format('mm'));
-                timeComponents.filter('[data-time-component=seconds]').text(date.format('ss'));
+
+                var displayHour = date.format(use24Hours ? 'HH' : 'hh'),
+                    displayMinute = date.format('mm'),
+                    displaySecond = date.format('ss'),
+                    tempDate = date;
+
+                if (options.stepping !== 1) {
+                    tempDate.minutes((Math.round(tempDate.minutes() / options.stepping) * options.stepping)).seconds(0);
+                    while (options.minDate && tempDate.isBefore(options.minDate)) {
+                        tempDate.add(options.stepping, 'minutes');
+                    }
+                }
+
+                // timpicker displays right stepping
+                if (!options.useCurrent) {
+                    displayHour = tempDate.format(use24Hours ? 'HH' : 'hh');
+                    displayMinute = tempDate.format('mm');
+                    displaySecond = tempDate.format('ss');
+                }
+
+                timeComponents.filter('[data-time-component=hours]').text(displayHour);
+                timeComponents.filter('[data-time-component=minutes]').text(displayMinute);
+                timeComponents.filter('[data-time-component=seconds]').text(displaySecond);
 
                 fillHours();
                 fillMinutes();
@@ -881,7 +1041,15 @@
                 if (isValid(targetMoment)) {
                     date = targetMoment;
                     viewDate = date.clone();
-                    input.val(date.format(actualFormat));
+
+                    if (options.showBE) {
+                        let displayDate = date.clone().add(543, 'y').format(
+                            actualFormat);
+                        input.val(displayDate);
+                    } else {
+                        input.val(date.format(actualFormat));
+                    }
+
                     element.data('date', date.format(actualFormat));
                     unset = false;
                     update();
@@ -890,9 +1058,18 @@
                         date: date.clone(),
                         oldDate: oldDate
                     });
+
                 } else {
                     if (!options.keepInvalid) {
-                        input.val(unset ? '' : date.format(actualFormat));
+
+                        if (options.showBE) {
+                            let displayDate = date.clone().add(543, 'y').format(
+                                actualFormat);
+                            input.val(unset ? '' : displayDate);
+                        } else {
+                            input.val(unset ? '' : date.format(actualFormat));
+                        }
+
                     } else {
                         notifyEvent({
                             type: 'dp.change',
@@ -1009,7 +1186,14 @@
 
                 selectYear: function (e) {
                     var year = parseInt($(e.target).text(), 10) || 0;
-                    viewDate.year(year);
+
+                    if (options.showBE) {
+                        let displayYear = year - 543;
+                        viewDate.year(displayYear);
+                    } else {
+                        viewDate.year(year);
+                    }
+
                     if (currentViewMode === minViewModeNumber) {
                         setValue(date.clone().year(viewDate.year()));
                         if (!options.inline) {
@@ -1054,52 +1238,51 @@
                 incrementHours: function () {
                     var newDate = date.clone().add(1, 'h');
                     if (isValid(newDate, 'h')) {
-                        setValue(newDate);
+                        setValue(newDate, 'incrementHours');
                     }
                 },
 
                 incrementMinutes: function () {
                     var newDate = date.clone().add(options.stepping, 'm');
                     if (isValid(newDate, 'm')) {
-                        setValue(newDate);
+                        setValue(newDate, 'incrementMinutes');
                     }
                 },
 
                 incrementSeconds: function () {
                     var newDate = date.clone().add(1, 's');
                     if (isValid(newDate, 's')) {
-                        setValue(newDate);
+                        setValue(newDate, 'incrementSeconds');
                     }
                 },
 
                 decrementHours: function () {
                     var newDate = date.clone().subtract(1, 'h');
                     if (isValid(newDate, 'h')) {
-                        setValue(newDate);
+                        setValue(newDate, 'decrementHours');
                     }
                 },
 
                 decrementMinutes: function () {
                     var newDate = date.clone().subtract(options.stepping, 'm');
                     if (isValid(newDate, 'm')) {
-                        setValue(newDate);
+                        setValue(newDate, 'decrementMinutes');
                     }
                 },
 
                 decrementSeconds: function () {
                     var newDate = date.clone().subtract(1, 's');
                     if (isValid(newDate, 's')) {
-                        setValue(newDate);
+                        setValue(newDate, 'decrementSeconds');
                     }
                 },
 
                 togglePeriod: function () {
-                    setValue(date.clone().add((date.hours() >= 12) ? -12 : 12, 'h'));
+                    setValue(date.clone().add((date.hours() >= 12) ? -12 : 12, 'h'), 'togglePeriod');
                 },
 
                 togglePicker: function (e) {
                     var $this = $(e.target),
-                        $link = $this.closest('a'),
                         $parent = $this.closest('ul'),
                         expanded = $parent.find('.show'),
                         closed = $parent.find('.collapse:not(.show)'),
@@ -1119,17 +1302,19 @@
                         }
                         if ($this.is('i')) {
                             $this.toggleClass(options.icons.time + ' ' + options.icons.date);
-                            if ($this.hasClass(options.icons.date)) {
-                                $link.attr('title', options.tooltips.selectDate);
-                            } else {
-                                $link.attr('title', options.tooltips.selectTime);
+                            $this.parent().toggleClass('time-view  date-view');
+                            if ($this.parent().hasClass('time-view')) {
+                                $this.parent().attr('title', options.tooltips.selectTime);
+                            } else if ($this.parent().hasClass('date-view')) {
+                                $this.parent().attr('title', options.tooltips.selectDate);
                             }
                         } else {
                             $this.find('i').toggleClass(options.icons.time + ' ' + options.icons.date);
-                            if ($this.hasClass(options.icons.date)) {
-                                $link.attr('title', options.tooltips.selectDate);
-                            } else {
-                                $link.attr('title', options.tooltips.selectTime);
+                            $this.parent().toggleClass('time-view  date-view');
+                            if ($this.parent().hasClass('time-view')) {
+                                $this.parent().attr('title', options.tooltips.selectTime);
+                            } else if ($this.parent().hasClass('date-view')) {
+                                $this.parent().attr('title', options.tooltips.selectDate);
                             }
                         }
 
@@ -1234,15 +1419,36 @@
                 if (input.prop('disabled') || (!options.ignoreReadonly && input.prop('readonly')) || widget) {
                     return picker;
                 }
+
                 if (input.val() !== undefined && input.val().trim().length !== 0) {
-                    setValue(parseInputDate(input.val().trim()));
-                } else if (unset && options.useCurrent && (options.inline || (input.is('input') && input.val().trim().length === 0))) {
-                    currentMoment = getMoment();
-                    if (typeof options.useCurrent === 'string') {
-                        currentMoment = useCurrentGranularity[options.useCurrent](currentMoment);
+
+                    let displayDate = parseInputDate(input.val().trim()),
+                        realDate = displayDate.clone();
+                    if (options.showBE) {
+                        realDate = displayDate.clone().subtract(543, 'y');
                     }
-                    setValue(currentMoment);
+                    setValue(realDate);
+
+                } else if (unset && (options.inline || (input.is('input') && input.val().trim().length === 0))) {
+
+                    if (options.useCurrent) {
+                        currentMoment = getMoment();
+                        if (typeof options.useCurrent === 'string') {
+                            currentMoment = useCurrentGranularity[options.useCurrent](currentMoment);
+                        }
+                        setValue(currentMoment);
+                    } else {
+                        // if useCurrent: false, only timepicker get value from picker
+                        if (hasTime()) {
+                            currentMoment = getMoment();
+                            if (typeof options.useCurrent === 'string') {
+                                currentMoment = useCurrentGranularity[options.useCurrent](currentMoment);
+                            }
+                            setValue(currentMoment);
+                        }
+                    }
                 }
+
                 widget = getTemplate();
 
                 fillDow();
@@ -1338,6 +1544,14 @@
             change = function (e) {
                 var val = $(e.target).val().trim(),
                     parsedDate = val ? parseInputDate(val) : null;
+
+                if (options.showBE) {
+                    parsedDate = val ? parseInputDate(val).subtract(543, 'y') :
+                        null;
+                } else {
+                    parsedDate = val ? parseInputDate(val) : null;
+                }
+
                 setValue(parsedDate);
                 e.stopImmediatePropagation();
                 return false;
@@ -1415,7 +1629,6 @@
                         return date.localeData().longDateFormat(formatInput2) || formatInput2;
                     });
                 });
-
 
                 parseFormats = options.extraFormats ? options.extraFormats.slice() : [];
                 if (parseFormats.indexOf(format) < 0 && parseFormats.indexOf(actualFormat) < 0) {
@@ -1911,6 +2124,23 @@
             return picker;
         };
 
+        picker.labels = function (labels) {
+            if (arguments.length === 0) {
+                return $.extend({}, options.labels);
+            }
+
+            if (!(labels instanceof Object)) {
+                throw new TypeError(
+                    'labels() expects parameter to be an Object');
+            }
+            $.extend(options.labels, labels);
+            if (widget) {
+                hide();
+                show();
+            }
+            return picker;
+        };
+
         picker.useStrict = function (useStrict) {
             if (arguments.length === 0) {
                 return options.useStrict;
@@ -2249,7 +2479,8 @@
             ///<param name="hours" locid="$.fn.datetimepicker.disabledHours_p:hours">Takes an [ int ] of values and disallows the user to select only from those hours.</param>
             ///</signature>
             if (arguments.length === 0) {
-                return (options.disabledHours ? $.extend({}, options.disabledHours) : options.disabledHours);
+                return (options.disabledHours ? $.extend({}, options.disabledHours) :
+                    options.disabledHours);
             }
 
             if (!hours) {
@@ -2337,7 +2568,25 @@
             viewUpdate();
             return picker;
         };
+        picker.viewInput = function () {
+            if (input) {
+                input.blur();
+                return input.val();
+            }
+            return '';
+        };
+        picker.showBE = function (showBE) {
+            if (arguments.length === 0) {
+                return options.showBE;
+            }
 
+            if (typeof showBE !== 'boolean') {
+                throw new TypeError('showBE() expects a boolean parameter');
+            }
+
+            options.showBE = showBE;
+            return picker;
+        };
         // initializing element and component attributes
         if (element.is('input')) {
             input = element;
@@ -2352,12 +2601,8 @@
 
         if (element.hasClass('input-group')) {
             // in case there is more then one 'input-group-addon' Issue #48
-            // issue - BS4.4 dropped support for input-group-addon -- changed to input-group-text
             if (element.find('.datepickerbutton').length === 0) {
-                component = element.find('.input-group-text');
-                if (component.length === 0) {
-                    component = element.find('.input-group-addon');
-                }
+                component = element.find('.input-group-append');
             } else {
                 component = element.find('.datepickerbutton');
             }
@@ -2383,9 +2628,15 @@
             picker.disable();
         }
         if (input.is('input') && input.val().trim().length !== 0) {
-            setValue(parseInputDate(input.val().trim()));
-        }
-        else if (options.defaultDate && input.attr('placeholder') === undefined) {
+            let displayDate = parseInputDate(input.val().trim()),
+                realDate = displayDate.clone();
+
+            if (options.showBE) {
+                realDate = displayDate.clone().subtract(543, 'y');
+            }
+
+            setValue(realDate);
+        } else if (options.defaultDate && input.attr('placeholder') === undefined) {
             setValue(options.defaultDate);
         }
         if (options.inline) {
@@ -2401,12 +2652,12 @@
      ********************************************************************************/
 
     /**
-    * See (http://jquery.com/).
-    * @name jQuery
-    * @class
-    * See the jQuery Library  (http://jquery.com/) for full details.  This just
-    * documents the function and classes that are added to jQuery by this plug-in.
-    */
+     * See (http://jquery.com/).
+     * @name jQuery
+     * @class
+     * See the jQuery Library  (http://jquery.com/) for full details.  This just
+     * documents the function and classes that are added to jQuery by this plug-in.
+     */
     /**
      * See (http://jquery.com/)
      * @name fn
@@ -2420,8 +2671,13 @@
      * @class datetimepicker
      * @memberOf jQuery.fn
      */
+    /**
+     * String Options
+     * @class datetimepicker
+     * @param options
+     */
     $.fn.datetimepicker = function (options) {
-        options = options || {};
+        options = (options ? options : {});
 
         var args = Array.prototype.slice.call(arguments, 1),
             isInstance = true,
@@ -2475,15 +2731,15 @@
         disabledDates: false,
         enabledDates: false,
         icons: {
-            time: 'fa fa-clock-o',
-            date: 'fa fa-calendar',
-            up: 'fa fa-chevron-up',
-            down: 'fa fa-chevron-down',
-            previous: 'fa fa-chevron-left',
-            next: 'fa fa-chevron-right',
-            today: 'fa fa-crosshairs',
-            clear: 'fa fa-trash-o',
-            close: 'fa fa-times'
+            time: 'far fa-clock',
+            date: 'far fa-calendar',
+            up: 'fas fa-chevron-up',
+            down: 'fas fa-chevron-down',
+            previous: 'fas fa-chevron-left',
+            next: 'fas fa-chevron-right',
+            today: 'fas fa-calendar-check',
+            clear: 'far fa-trash-alt',
+            close: 'far fa-times-circle'
         },
         tooltips: {
             today: 'Go to today',
@@ -2512,6 +2768,10 @@
             togglePeriod: 'Toggle Period',
             selectTime: 'Select Time',
             selectDate: 'Select Date'
+        },
+        labels: {
+            buddhistEra: 'B.E.',
+            currentEra: 'C.E.'
         },
         useStrict: false,
         sideBySide: false,
@@ -2616,6 +2876,7 @@
                 }
             },
             enter: function () {
+                this.viewInput();
                 this.hide();
             },
             escape: function () {
@@ -2645,8 +2906,10 @@
         disabledTimeIntervals: false,
         disabledHours: false,
         enabledHours: false,
-        viewDate: false
+        viewDate: false,
+        showBE: false
     };
 
     return $.fn.datetimepicker;
 }));
+
