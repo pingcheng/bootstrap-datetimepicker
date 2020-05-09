@@ -41,7 +41,7 @@
     "moment"
   ],
   "license": "MIT",
-  "main": "src/js/bootstrap-datetimepicker.js",
+  "main": "build/js/bootstrap-datetimepicker.min.js",
   "name": "pc-bootstrap4-datetimepicker",
   "repository": {
     "type": "git",
