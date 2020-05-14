@@ -2475,15 +2475,15 @@
         disabledDates: false,
         enabledDates: false,
         icons: {
-            time: 'fa fa-clock-o',
-            date: 'fa fa-calendar',
-            up: 'fa fa-chevron-up',
-            down: 'fa fa-chevron-down',
-            previous: 'fa fa-chevron-left',
-            next: 'fa fa-chevron-right',
-            today: 'fa fa-crosshairs',
-            clear: 'fa fa-trash-o',
-            close: 'fa fa-times'
+           time:'far fa-clock',
+           date:'far fa-calendar',
+           up:'fas fa-arrow-up',
+           down:'fas fa-arrow-down',
+           previous:'fas fa-chevron-left',
+           next:'fas fa-chevron-right',
+           today:'fas fa-calendar-check',
+           clear:'far fa-trash-alt',
+           close:'far fa-times-circle'
         },
         tooltips: {
             today: 'Go to today',
